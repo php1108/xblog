@@ -85,7 +85,7 @@
                         @endforeach
                         </tbody>
                     </table>
-                    {{ $comments->links() }}
+                    {{ $comments->links()  }}
                 </div>
             </div>
         </div>
