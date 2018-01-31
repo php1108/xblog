@@ -10,8 +10,8 @@ _ide_helper.php
 /storage/*.key
 /storage/post
 
-/public/css/
-/public/fonts/
-/public/js/
+#/public/css/
+#/public/fonts/
+#/public/js/
 /public/mix-manifest.json
 /composer.lock
