@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Repositories\PostRepository;
 use App\Http\Repositories\TagRepository;
 use App\Tag;
 use Illuminate\Http\Request;
@@ -22,13 +23,17 @@ class TagController extends Controller
 
     public function index()
     {
-        return view('tag.index');
+        $tags = $this->tagRepository->getAll()->reject(function ($tag) {
+            return $tag->posts_count == 0;
+        });
+        $total = app(PostRepository::class)->count();
+        return view('tag.index', compact('tags', 'total'));
     }
 
     public function show($name)
     {
         $tag = $this->tagRepository->get($name);
-        $page_size = $page_size = XblogConfig::getValue('page_size', 7);
+        $page_size = $page_size = get_config('page_size', 7);
 
         $posts = $this->tagRepository->pagedPostsByTag($tag, $page_size);
         return view('tag.show', compact('posts', 'name'));

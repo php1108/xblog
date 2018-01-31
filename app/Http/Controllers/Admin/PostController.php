@@ -12,6 +12,8 @@ use App\Http\Requests;
 use App\Notifications\UserRegistered;
 use App\Post;
 use Carbon\Carbon;
+use Chumper\Zipper\Facades\Zipper;
+use File;
 use Gate;
 use Illuminate\Http\Request;
 use League\HTMLToMarkdown\HtmlConverter;
@@ -124,22 +126,43 @@ class PostController extends Controller
     public function download($id)
     {
         $post = Post::withoutGlobalScopes()->where('id', $id)->with(['tags', 'category'])->first();
-
-        $info = "title: " . $post->title;
-        $info = $info . "\ndate: " . $post->created_at->format('Y-m-d H:i');
-        $info = $info . "\npermalink: " . $post->slug;
-        $info = $info . "\ncategory: " . $post->category->name;
-        $info = $info . "\ntags:\n";
-        foreach ($post->tags as $tag) {
-            $info = $info . "- $tag->name\n";
-        }
-        $info = $info . "---\n\n" . $post->content;
+        $info = $this->getPostContent($post);
         return response($info, 200,
             [
                 "Content-Type" => 'application/force-download',
                 'Content-Disposition' => "attachment; filename=\"" . $post->title . ".md\""
             ]
         );
+    }
+
+    public function downloadAll()
+    {
+        $path = storage_path('post' . DIRECTORY_SEPARATOR . 'posts.zip');
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        $zipper = Zipper::make($path);
+        foreach (Post::withoutGlobalScopes()->get() as $post) {
+            $zipper->folder('posts')->addString($post->title . '.md', $this->getPostContent($post));
+        }
+        $zipper->close();
+        return response()->download($path);
+    }
+
+    private function getPostContent(Post $post)
+    {
+        $info = "---\ntitle: " . $post->title;
+        $info = $info . "\ncreated_at: " . $post->created_at;
+        $info = $info . "\nslug: " . $post->slug;
+        $info = $info . "\ncategory: " . $post->category->name;
+        if ($post->tags) {
+            $info = $info . "\ntags:\n";
+            foreach ($post->tags as $tag) {
+                $info = $info . "  - $tag->name\n";
+            }
+        }
+        $info = $info . "\n---\n\n" . $post->content;
+        return $info;
     }
 
     public function restore($id)
@@ -156,7 +179,6 @@ class PostController extends Controller
 
     public function destroy($id)
     {
-
         $post = Post::withoutGlobalScopes()->findOrFail($id);
         $redirect = route('admin.posts');
         if (request()->has('redirect'))
@@ -190,5 +212,13 @@ class PostController extends Controller
     public function clearAllCache()
     {
         $this->postRepository->clearAllCache();
+    }
+
+    public function updateConfig(Request $request, $id)
+    {
+        $post = Post::withoutGlobalScopes()->findOrFail($id);
+        if ($post->saveConfig($request->all()))
+            return $this->succeedJsonMessage('Update configure successfully');
+        return $this->failedJsonMessage('Update Configure failed');
     }
 }

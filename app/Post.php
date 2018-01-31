@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
 use Lufficc\Comment\CommentHelper;
+use Lufficc\Config\ConfigureHelper;
 
 class Post extends Model
 {
-    use SoftDeletes, CommentHelper;
+    use SoftDeletes, CommentHelper, ConfigureHelper;
 
     /**
      * The "booting" method of the model.
@@ -22,11 +23,6 @@ class Post extends Model
         parent::boot();
 
         static::addGlobalScope(new PublishedScope());
-    }
-
-    public function searchableAs()
-    {
-        return 'posts';
     }
 
     /**
@@ -46,6 +42,7 @@ class Post extends Model
         'description',
         'updated_at',
         'created_at',
+        'published_at',
         'status'
     ];
 
@@ -79,5 +76,13 @@ class Post extends Model
     public function isPublished()
     {
         return $this->status == 1;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfigKeys()
+    {
+        return ['allow_resource_comment', 'comment_type', 'comment_info'];
     }
 }

@@ -1,40 +1,54 @@
 @extends('admin.layouts.app')
+@section('title', 'Edit '.$category->name)
 @section('content')
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="widget widget-default">
-                <div class="widget-header">
-                    <h3>修改分类</h3>
-                </div>
-                <div class="widget-body">
-                    <form role="form" class="form-horizontal" action="{{ route('category.update',$category->id) }}"
-                          method="post">
-                        <div class="form-group{{ $errors->has('name') ? ' has-error' : '' }}">
-                            <label for="name" class="col-md-4 control-label">分类名称</label>
-                            <div class="col-md-6">
-                                <input id="name" type="text" class="form-control" name="name"
-                                       value="{{ $category->name }}"
-                                       autofocus>
+    <div class="row justify-content-start">
+        <div class="col-md-6">
+            <form action="{{ route('category.update',$category->id) }}"
+                  method="post">
+                <div class="form-group">
+                    <label for="name" class="control-label">分类名称</label>
+                    <input id="name" type="text"
+                           class="form-control{{ $errors->has('name') ? ' is-invalid' : '' }}" name="name"
+                           value="{{ $category->name }}"
+                           autofocus>
 
-                                @if ($errors->has('name'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('name') }}</strong>
-                                    </span>
-                                @endif
-                            </div>
+                    @if ($errors->has('name'))
+                        <div class="invalid-feedback">
+                            <strong>{{ $errors->first('name') }}</strong>
                         </div>
-                        {{ csrf_field() }}
-                        <input type="hidden" name="_method" value="put">
-                        <div class="form-group">
-                            <div class="col-md-8 col-md-offset-4">
-                                <button type="submit" class="btn btn-primary">
-                                    修改
-                                </button>
-                            </div>
-                        </div>
-                    </form>
+                    @endif
                 </div>
-            </div>
+
+                <div class="form-group">
+                    <label for="description" class="control-label">分类描述</label>
+                    <textarea id="description" class="autosize-target form-control{{ $errors->has('description') ? ' is-invalid' : '' }}" name="description">{{ $category->description }}</textarea>
+                    @if ($errors->has('description'))
+                        <div class="invalid-feedback">
+                            <strong>{{ $errors->first('description') }}</strong>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="form-group">
+                    <label for="cover_img" class="control-label">分类图片</label>
+                    <input id="cover_img" type="text"
+                           class="form-control{{ $errors->has('cover_img') ? ' is-invalid' : '' }}" name="cover_img"
+                           value="{{ $category->cover_img }}">
+
+                    @if ($errors->has('cover_img'))
+                        <div class="invalid-feedback">
+                            <strong>{{ $errors->first('cover_img') }}</strong>
+                        </div>
+                    @endif
+                </div>
+                {{ csrf_field() }}
+                <input type="hidden" name="_method" value="put">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        修改
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

@@ -1,10 +1,14 @@
 /**
  * @author lufficc
  */
+
+require('./boot');
+
 (function ($) {
-    var Xblog = {
+    let Xblog = {
         init: function () {
             this.bootUp();
+            $('[data-toggle="tooltip"]').tooltip();
         },
         bootUp: function () {
             console.log('bootUp');
@@ -16,37 +20,101 @@
             initProjects();
             initDeleteTarget();
             highLightCode();
-            imageLiquid();
         },
     };
 
     function initDeleteTarget() {
-        $('[data-modal-target]').append(function () {
+        $('.swal-dialog-target').append(function () {
             return "\n" +
                 "<form action='" + $(this).attr('data-url') + "' method='post' style='display:none'>\n" +
-                "   <input type='hidden' name='_method' value='" + $(this).data('method') + "'>\n" +
+                "   <input type='hidden' name='_method' value='" + ($(this).data('method') ? $(this).data('method') : 'delete') + "'>\n" +
                 "   <input type='hidden' name='_token' value='" + XblogConfig.csrfToken + "'>\n" +
                 "</form>\n"
         }).click(function () {
-            var deleteForm = $(this).find("form");
-            swal({
-                    title: "你确定?",
-                    text: "你将会删除" + $(this).data('modal-target'),
-                    type: "warning",
-                    showCancelButton: true,
-                    confirmButtonColor: "#DD6B55",
-                    cancelButtonText: "取消",
-                    confirmButtonText: "确定",
-                    closeOnConfirm: true
-                },
-                function () {
-                    deleteForm.submit();
-                });
+            let deleteForm = $(this).find("form");
+            let method = ($(this).data('method') ? $(this).data('method') : 'delete');
+            let url = $(this).attr('data-url');
+            let data = $(this).data('request-data') ? $(this).data('request-data') : '';
+            let title = $(this).data('dialog-title') ? $(this).data('dialog-title') : '删除';
+            let message = $(this).data('dialog-msg');
+            let type = $(this).data('dialog-type') ? $(this).data('dialog-type') : 'warning';
+            let cancel_text = $(this).data('dialog-cancel-text') ? $(this).data('dialog-cancel-text') : '取消';
+            let confirm_text = $(this).data('dialog-confirm-text') ? $(this).data('dialog-confirm-text') : '确定';
+            let enable_html = $(this).data('dialog-enable-html') == '1';
+            let enable_ajax = $(this).data('enable-ajax') == '1';
+            console.log(data);
+            if (enable_ajax) {
+                swal({
+                        title: title,
+                        text: message,
+                        type: type,
+                        html: enable_html,
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        cancelButtonText: cancel_text,
+                        confirmButtonText: confirm_text,
+                        showLoaderOnConfirm: true,
+                        closeOnConfirm: true
+                    },
+                    function () {
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': XblogConfig.csrfToken
+                            },
+                            url: url,
+                            type: method,
+                            data: data,
+                            success: function (res) {
+                                if (res.code == 200) {
+                                    swal({
+                                        title: 'Succeed',
+                                        text: res.msg,
+                                        type: "success",
+                                        timer: 1000,
+                                        confirmButtonText: "OK"
+                                    });
+                                } else {
+                                    swal({
+                                        title: 'Failed',
+                                        text: "操作失败",
+                                        type: "error",
+                                        timer: 1000,
+                                        confirmButtonText: "OK"
+                                    });
+                                }
+                            },
+                            error: function (res) {
+                                swal({
+                                    title: 'Failed',
+                                    text: "操作失败",
+                                    type: "error",
+                                    timer: 1000,
+                                    confirmButtonText: "OK"
+                                });
+                            }
+                        })
+                    });
+            } else {
+                swal({
+                        title: title,
+                        text: message,
+                        type: type,
+                        html: enable_html,
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        cancelButtonText: cancel_text,
+                        confirmButtonText: confirm_text,
+                        closeOnConfirm: true
+                    },
+                    function () {
+                        deleteForm.submit();
+                    });
+            }
         });
     }
 
     function loadComments(shouldMoveEnd, force) {
-        var container = $('#comments-container');
+        let container = $('#comments-container');
         if (force || container.children().length <= 0) {
             console.log("loading comments");
             $.ajax({
@@ -64,47 +132,49 @@
     }
 
     function initComment() {
-        var form = $('#comment-form');
-        var submitBtn = form.find('#comment-submit');
-        var commentContent = form.find('#comment-content');
+        let form = $('#comment-form');
+        let submitBtn = form.find('#comment-submit');
+        let commentContent = form.find('#comment-content');
 
-        var username = form.find('input[name=username]');
-        var email = form.find('input[name=email]');
-        var site = form.find('input[name=site]');
+        let username = form.find('input[name=username]');
+        let email = form.find('input[name=email]');
+        let site = form.find('input[name=site]');
+        let captcha = form.find('input[name=captcha]');
 
         if (window.localStorage) {
-            username.val(localStorage.getItem('comment_username'));
-            email.val(localStorage.getItem('comment_email'));
-            site.val(localStorage.getItem('comment_site'));
+            username.val(localStorage.getItem('comment_username') === undefined ? '' : localStorage.getItem('comment_username'));
+            email.val(localStorage.getItem('comment_email') === undefined ? '' : localStorage.getItem('comment_email'));
+            site.val(localStorage.getItem('comment_site') === undefined ? '' : localStorage.getItem('comment_site'));
         }
 
         form.on('submit', function () {
             if (username.length > 0) {
-                if ($.trim(username.val()) == '') {
+                if ($.trim(username.val()) === '') {
                     username.focus();
                     return false;
                 }
-                else if ($.trim(email.val()) == '') {
+                else if ($.trim(email.val()) === '') {
                     email.focus();
                     return false;
                 }
             }
 
-            if ($.trim(commentContent.val()) == '') {
+            if ($.trim(commentContent.val()) === '') {
                 commentContent.focus();
                 return false;
             }
 
-            var usernameValue = username.val();
-            var emailValue = email.val();
-            var siteValue = site.val();
+            let usernameValue = username.val();
+            let emailValue = email.val();
+            let siteValue = site.val();
+            let captchaValue = captcha ? captcha.val() : '';
 
             submitBtn.val('提交中...').addClass('disabled').prop('disabled', true);
             $.ajax({
                 method: 'post',
                 url: $(this).attr('action'),
                 headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    'X-CSRF-TOKEN': XblogConfig.csrfToken
                 },
                 data: {
                     commentable_id: form.find('input[name=commentable_id]').val(),
@@ -113,6 +183,7 @@
                     username: usernameValue,
                     email: emailValue,
                     site: siteValue,
+                    captcha: captchaValue,
                 },
             }).done(function (data) {
                 if (data.status === 200) {
@@ -125,13 +196,18 @@
                     email.val('');
                     site.val('');
                     commentContent.val('');
-                    form.find('#comment_error_msg').text('');
+                    form.find('#comment_submit_msg').attr('class', 'text-success').text('Comment succeed! Will be shown after review.');
                     loadComments(true, true);
                 } else {
-                    form.find('#comment_error_msg').text(data.msg);
+                    form.find('#comment_submit_msg').attr('class', 'text-danger').text(data.msg);
                 }
             }).always(function () {
                 submitBtn.val("回复").removeClass('disabled').prop('disabled', false);
+                form.find('#comment_submit_msg').fadeIn();
+                form.find('#captcha').attr('src', '/captcha/flat?' + Math.random());
+                setTimeout(function () {
+                    form.find('#comment_submit_msg').fadeOut();
+                }, 1500);
             });
             return false;
         });
@@ -166,23 +242,15 @@
     }
 
     function initTables() {
-        $('table').addClass('table table-bordered table-responsive');
+        $('.post-detail-content table').addClass('table table-striped table-responsive');
     }
 
     function autoSize() {
         autosize($('.autosize-target'));
     }
 
-    function imageLiquid() {
-        $(".js-imgLiquid").imgLiquid({
-            fill: true,
-            horizontalAlign: "center",
-            verticalAlign: "top"
-        });
-    }
-
     function initProjects() {
-        var projects = $('.projects');
+        let projects = $('.projects');
         if (projects.length > 0) {
             $.get('https://api.github.com/users/' + XblogConfig.github_username + '/repos?type=owner',
                 function (repositories) {
@@ -198,12 +266,14 @@
                         return repo.description != null;
                     });
                     repositories.forEach(function (repo) {
-                        var repoTemplate = $('#repo-template').html();
-                        var item = repoTemplate.replace(/\[(.*?)\]/g, function () {
+                        let repoTemplate = $('#repo-template').html();
+                        let item = repoTemplate.replace(/\[(.*?)\]/g, function () {
                             return eval(arguments[1]);
                         });
                         projects.append(item)
-                    })
+                    });
+                    projects.attr('data-masonry', '{ "itemSelector": ".col", "columnWidth":".col" }');
+                    projects.masonry();
                 });
         }
     }
@@ -213,11 +283,14 @@
 $(document).ready(function () {
     Xblog.init();
 });
-function replySomeone(username) {
-    var commentContent = $("#comment-content");
-    var oldContent = commentContent.val();
+
+window.replySomeone = function (username) {
+    if (!username)
+        return;
+    let commentContent = $("#comment-content");
+    let oldContent = commentContent.val();
     prefix = "@" + username + " ";
-    var newContent = '';
+    let newContent = '';
     if (oldContent.length > 0) {
         newContent = oldContent + "\n" + prefix;
     } else {
@@ -228,12 +301,12 @@ function replySomeone(username) {
     moveEnd(commentContent);
 }
 
-var moveEnd = function (obj) {
+window.moveEnd = function (obj) {
     obj.focus();
-    var len = obj.value === undefined ? 0 : obj.value.length;
+    let len = obj.value === undefined ? 0 : obj.value.length;
 
     if (document.selection) {
-        var sel = obj.createTextRange();
+        let sel = obj.createTextRange();
         sel.moveStart('character', len);
         sel.collapse();
         sel.select();

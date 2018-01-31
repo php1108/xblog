@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Comment;
 use App\Http\Controllers\Controller;
 use App\Http\Repositories\CategoryRepository;
 use App\Http\Repositories\CommentRepository;
@@ -12,7 +13,11 @@ use App\Http\Repositories\PostRepository;
 use App\Http\Repositories\TagRepository;
 use App\Http\Repositories\UserRepository;
 use App\Http\Requests;
+use App\Ip;
 use App\Page;
+use App\Post;
+use Carbon\Carbon;
+use DB;
 use App\User;
 use Illuminate\Http\Request;
 
@@ -46,7 +51,8 @@ class AdminController extends Controller
                                 TagRepository $tagRepository,
                                 PageRepository $pageRepository,
                                 ImageRepository $imageRepository,
-                                MapRepository $mapRepository)
+                                MapRepository $mapRepository
+    )
     {
         $this->postRepository = $postRepository;
         $this->commentRepository = $commentRepository;
@@ -62,19 +68,47 @@ class AdminController extends Controller
     {
         $info = [];
         $info['post_count'] = $this->postRepository->count();
-        $info['comment_count'] = $this->commentRepository->count();
+        $info['comment_count'] = Comment::withoutGlobalScopes()->count();
         $info['user_count'] = $this->userRepository->count();
         $info['category_count'] = $this->categoryRepository->count();
         $info['tag_count'] = $this->tagRepository->count();
         $info['page_count'] = $this->pageRepository->count();
         $info['image_count'] = $this->imageRepository->count();
-
-        return view('admin.index', compact('info'));
+        $info['ip_count'] = Ip::count();
+        $postDetail = Post::select([
+            DB::raw("YEAR(created_at) as year"),
+            DB::raw("MONTH(created_at) as month"),
+            DB::raw('COUNT(id) AS count'),
+        ])->whereBetween('created_at', [Carbon::now()->subYear(1), Carbon::now()])
+            ->groupBy('year', 'month')
+            ->orderBy('year', 'asc')
+            ->orderBy('month', 'asc')
+            ->get()
+            ->toArray();
+        $labels = [];
+        $data = [];
+        foreach ($postDetail as $detail) {
+            array_push($labels, $detail['year'] . '-' . $detail['month']);
+            array_push($data, $detail['count']);
+        }
+        $response = view('admin.index', compact('info', 'labels', 'data'));
+        if (($failed_jobs_count = DB::table('failed_jobs')->count()) > 0) {
+            $failed_jobs_link = route('admin.failed-jobs');
+            $response->withErrors(['failed_jobs' => "You have $failed_jobs_count failed jobs.<a href='$failed_jobs_link'>View</a>"]);
+        }
+        return $response;
     }
 
     public function settings()
     {
-        return view('admin.settings');
+        $variables = config('configurable_variables');
+        $radios = array_where($variables, function ($value, $key) {
+            return isset($value['type']) && $value['type'] == 'radio';
+        });
+        $others = array_where($variables, function ($value, $key) {
+            return !isset($value['type']) || $value['type'] != 'radio';
+        });
+        return view('admin.settings', compact('variables', 'radios', 'others'));
     }
 
     public function saveSettings(Request $request)
@@ -90,9 +124,10 @@ class AdminController extends Controller
         return view('admin.posts', compact('posts'));
     }
 
-    public function comments()
+    public function comments(Request $request)
     {
-        $comments = $this->commentRepository->getAll();
+        $comments = Comment::withoutGlobalScopes()->where($request->except(['page']))->orderBy('created_at', 'desc')->paginate(20);
+        $comments->appends($request->except('page'));
         return view('admin.comments', compact('comments'));
     }
 
@@ -108,9 +143,10 @@ class AdminController extends Controller
         return view('admin.categories', compact('categories'));
     }
 
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::paginate(20);
+        $users = User::where($request->except(['page']))->paginate(20);
+        $users->appends($request->except('page'));
         return view('admin.users', compact('users'));
     }
 
@@ -118,6 +154,26 @@ class AdminController extends Controller
     {
         $pages = Page::paginate(20);
         return view('admin.pages', compact('pages'));
+    }
+
+    public function ips(Request $request)
+    {
+        $ips = Ip::withoutGlobalScopes()->where($request->except(['page']))->withCount(
+            ['comments' => function ($query) {
+                $query->withTrashed();
+            }]
+        )->with(['user'])->orderBy('user_id', 'id')->paginate(20);
+        $ips->appends($request->except('page'));
+        return view('admin.ips', compact('ips'));
+    }
+
+    public function flushFailedJobs()
+    {
+        $result = DB::table('failed_jobs')->delete();
+        if ($result) {
+            return back()->with('success', "Flush $result failed jobs");
+        }
+        return back()->withErrors("Flush failed jobs failed");
     }
 
 }

@@ -15,45 +15,19 @@
 @import "timeline";
 @import "comment";
 @import "hot-post";
-@import "sweetalert";
 @import "pay";
 
 html, body {
-  color: #505050;
+  //color: #505050;
   font-size: 14px;
   height: 100%;
-  position: relative;
+  //position: relative;
   background: $body-bg;
-  font-family: NotoSansHans-Regular, AvenirNext-Regular, arial, Hiragino Sans GB, "Microsoft Yahei", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif;
-}
-
-h1 {
-  font-size: $font-size-h1;
-}
-
-h2 {
-  font-size: $font-size-h2;
-}
-
-h3 {
-  font-size: $font-size-h3;
-}
-
-h4 {
-  font-size: $font-size-h4;
-}
-
-h5 {
-  font-size: $font-size-h5;
-}
-
-h6 {
-  font-size: $font-size-h6;
+  //font-family: NotoSansHans-Regular, AvenirNext-Regular, arial, Hiragino Sans GB, "Microsoft Yahei", "Hiragino Sans GB", "WenQuanYi Micro Hei", sans-serif;
 }
 
 h1,
 h2 {
-  font-weight: bold;
   margin-top: 30px;
   margin-bottom: 20px;
 }
@@ -92,24 +66,6 @@ blockquote {
   border-left: 4px solid #ddd;
 }
 
-.pagination {
-  -moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
-  border-radius: 5px;
-  color: $colorPrimary;
-}
-
-.btn-more {
-  @extend .transition;
-  border: 1px solid $colorPrimary;
-  background: $colorPrimary;
-  color: white;
-}
-
-.btn-more:hover {
-  color: $colorAccent;
-}
-
 /*footer*/
 
 #footer, #content-wrap:after {
@@ -128,7 +84,8 @@ blockquote {
 }
 
 /*code*/
-$codeBg: rgb(247, 249, 247)/*#20201d*/;
+$codeBg: rgb(247, 249, 247)/*#20201d*/
+;
 $codeColor: #383a42;
 
 pre, .highlight {
@@ -158,10 +115,19 @@ pre code {
   white-space: pre;
 }
 
-
 @media (max-width: 768px) {
   .phone-no-padding {
     padding-left: 0;
     padding-right: 0;
   }
+}
+
+.bg-placeholder {
+  background-image: -webkit-linear-gradient(315deg, #563d7c, $colorPrimaryDark, $colorPrimary);
+  background-image: -o-linear-gradient(245deg, $colorAccent, $colorPrimaryDark, $colorPrimary);
+  background-image: linear-gradient(135deg, #563d7c, $colorPrimaryDark, $colorPrimary)
+}
+
+.breadcrumb {
+  background-color: #fff;
 }

@@ -8,7 +8,10 @@
 namespace App\Http\Repositories;
 
 use App\Comment;
+use App\Notifications\ReceivedComment;
+use App\Scopes\VerifiedCommentScope;
 use Illuminate\Http\Request;
+use Lufficc\Exception\CommentNotAllowedException;
 use Lufficc\MarkDownParser;
 use Lufficc\Mention;
 
@@ -38,16 +41,29 @@ class CommentRepository extends Repository
         return app(Comment::class);
     }
 
-    private function getCacheKey($commentable_type, $commentable_id)
+    public function count()
     {
-        return $commentable_type . '.' . $commentable_id . 'comments';
+        $count = $this->remember($this->tag() . '.count', function () {
+            return $this->model()->withTrashed()->count();
+        });
+        return $count;
     }
 
-    public function getByCommentable($commentable_type, $commentable_id)
+    private function getCacheKey($commentable_type, $commentable_id, $includeUnVerified)
     {
-        $comments = $this->remember($this->getCacheKey($commentable_type, $commentable_id), function () use ($commentable_type, $commentable_id) {
+        return $commentable_type . '.' . $commentable_id . 'comments.' . $includeUnVerified;
+    }
+
+    public function getByCommentable($commentable_type, $commentable_id, $includeUnVerified = null)
+    {
+        if ($includeUnVerified == null) $includeUnVerified = isAdminById(auth()->id());
+        $comments = $this->remember($this->getCacheKey($commentable_type, $commentable_id, $includeUnVerified), function () use ($commentable_type, $commentable_id, $includeUnVerified) {
             $commentable = app($commentable_type)->where('id', $commentable_id)->select(['id'])->firstOrFail();
-            return $commentable->comments()->with(['user'])->orderBy('id', 'asc')->get();
+            $query = $commentable->comments()->with(['user'])->orderBy('id', 'asc');
+            if ($includeUnVerified) {
+                $query->withoutGlobalScope(VerifiedCommentScope::class);
+            }
+            return $query->get();
         });
         return $comments;
     }
@@ -68,11 +84,17 @@ class CommentRepository extends Repository
         $commentable_id = $request->get('commentable_id');
         $commentable = app($request->get('commentable_type'))->where('id', $commentable_id)->firstOrFail();
 
+        if (!$commentable->isShownComment() || !$commentable->allowComment()) {
+            throw new CommentNotAllowedException;
+        }
+
         if (auth()->check()) {
             $user = auth()->user();
             $comment->user_id = $user->id;
             $comment->username = $user->name;
             $comment->email = $user->email;
+            if (isAdminById($user->id))
+                $comment->status = 1;
         } else {
             $comment->username = $request->get('username');
             $comment->email = $request->get('email');
@@ -80,14 +102,16 @@ class CommentRepository extends Repository
         }
 
         $content = $request->get('content');
-
+        $comment->ip_id = $request->ip();
         $comment->content = $this->mention->parse($content);
         $comment->html_content = $this->markdownParser->parse($comment->content);
         $result = $commentable->comments()->save($comment);
 
+
         /**
          * mention user after comment saved
          */
+        getAdminUser()->notify(new ReceivedComment($comment));
         $this->mention->mentionUsers($comment, getMentionedUsers($content), $content);
 
         return $result;

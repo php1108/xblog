@@ -4,8 +4,8 @@
 @section('title',$post->title)
 @section('content')
     <div class="container">
-        <div class="row">
-            <div class="col-md-8 col-md-offset-2 col-sm-12 phone-no-padding">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-sm-12 phone-no-padding">
                 <div class="post-detail">
                     <div class="center-block">
                         <div class="post-detail-title">{{ $post->title }}</div>
@@ -35,10 +35,9 @@
                                 </span>
                                 <span>
                                     &nbsp;|&nbsp;
-                                    <a role="button"
-                                       data-method="delete"
+                                    <a class="swal-dialog-target"
                                        data-url="{{ route('post.destroy',$post->id) }}"
-                                       data-modal-target="{{ $post->title }}">
+                                       data-dialog-msg="Delete {{ $post->title }} ?">
                                     <i class="fa fa-trash-o fa-fw"></i>
                                     </a>
                                 </span>
@@ -71,7 +70,9 @@
                         </p>
                     </div>
                 </div>
-                @include('widget.recommended_posts',['recommendedPosts'=>$recommendedPosts])
+                @if(isset($recommendedPosts))
+                    @include('widget.recommended_posts',['recommendedPosts'=>$recommendedPosts])
+                @endif
                 @if(!(isset($preview) && $preview) && $post->isShownComment())
                     @include('widget.comment',[
                             'comment_key'=>$post->slug,
@@ -85,4 +86,7 @@
             </div>
         </div>
     </div>
+@endsection
+@section('script')
+    @include('widget.mathjax')
 @endsection

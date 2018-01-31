@@ -1,25 +1,19 @@
 @import "common";
 
 .post {
-  @extend .shadow-block;
   @extend .transition;
   background: white;
-  margin-bottom: 35px;
+  margin-bottom: 1rem;
   position: relative;
   overflow: hidden;
 }
 
-.post:hover {
-  @extend .shadow-block-hover;
-}
-
 .post .post-header {
-  border-bottom: 1px solid #ebebeb;
+  border-bottom: 1px dashed #ebebeb;
 }
 
 .post .post-header .post-title {
   margin: 0;
-  background: $widgetHeaderBgColor;
   padding: $postItemPaddingUpDown / 2 $postItemPaddingLeftRight $postItemPaddingUpDown / 2;
   font-size: 1.6em;
   font-weight: 500;
@@ -40,8 +34,7 @@
 .post-meta {
   color: $metaColor;
   font-size: 0.85em;
-  padding: $postItemPaddingUpDown/2 $postItemPaddingLeftRight $postItemPaddingUpDown / 2;
-  border-top: 0.75px solid rgba(238, 238, 238, 0.5);
+  padding: 0 $postItemPaddingLeftRight $postItemPaddingUpDown/2 $postItemPaddingLeftRight;
 }
 
 .post-description {
@@ -49,6 +42,9 @@
   line-height: 1.6em;
   color: #444443;
   margin: $postItemPaddingUpDown $postItemPaddingLeftRight $postItemPaddingUpDown;
+  img {
+    max-width: 100%;
+  }
 }
 
 .post .post-permalink {
@@ -57,7 +53,7 @@
 
 .post .post-footer {
   margin-top: $postItemPaddingUpDown;
-  border-top: 1px solid #ebebeb;
+  border-top: 1px dashed #ebebeb;
   padding: $postItemPaddingUpDown * 0.5 $postItemPaddingLeftRight;
 }
 

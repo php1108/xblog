@@ -11,7 +11,7 @@ namespace Lufficc\ExceptionHandler;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
-use Laravel\Socialite\Two\InvalidStateException;
+use Lufficc\Exception\CommentNotAllowedException;
 
 class BlogExceptionHandler
 {
@@ -22,9 +22,15 @@ class BlogExceptionHandler
      */
     public function handler(Request $request, Exception $exception)
     {
-        if ($request->ajax()) {
+        if ($request->expectsJson()) {
+            $msg = 'Sorry, something went wrong.';
+            if ($exception instanceof CommentNotAllowedException) {
+                $msg = 'Sorry, comment is not allowed now.';
+            } else if ($exception instanceof TokenMismatchException) {
+                $msg = 'Sorry, CSRF token mismatched.';
+            }
             return response()->json(
-                ['status' => $exception->getCode(), 'msg' => $exception->getMessage()]
+                ['status' => $exception->getCode(), 'msg' => $msg]
             );
         }
         return false;

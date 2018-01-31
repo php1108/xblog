@@ -31,7 +31,16 @@ trait CommentHelper
     public function isShownComment()
     {
         $configuration = $this->getCommentInfo();
-        return $configuration['comment_info'] != 'force_disable' && ($configuration['comment_info'] == 'force_enable' || XblogConfig::getValue('comment_type') != 'none');
+        return isset($configuration['comment_info']) && $configuration['comment_info'] != 'force_disable' && ($configuration['comment_info'] == 'force_enable' || XblogConfig::getValue('comment_type') != 'none');
+    }
+
+    /**
+     * @return bool
+     */
+    public function allowComment()
+    {
+        $allow_resource_comment = $this->getConfig('allow_resource_comment', 'default');
+        return $allow_resource_comment == 'default' ? XblogConfig::getBoolValue('allow_comment', true) : $this->getBoolConfig('allow_resource_comment', true);
     }
 
     /**

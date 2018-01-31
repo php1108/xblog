@@ -1,127 +1,60 @@
 @extends('admin.layouts.app')
-@section('title','文件')
+@section('title','Files')
 @section('content')
-    <div class="row">
-        <div class="col-md-12">
-            <div class="widget widget-default">
-                <div class="widget-header">
-                    <h6><i class="fa fa-file fa-fw"></i>文件</h6>
-                </div>
-                <div class="widget-body">
-                    <form role="form" class="form-horizontal" action="{{ route('upload.file') }}"
-                          enctype="multipart/form-data" method="post">
-                        {{ csrf_field() }}
-                        <input type="hidden" name="type" value="js">
-                        <div class="form-group">
-                            <label class="col-xs-2 col-xs-offset-1 control-label">
-                                Js
-                            </label>
-                            <div class="col-xs-6">
-                                <input class="form-control" type="file" name="file">
-                            </div>
-                            <div class="col-xs-2">
-                                <button type="submit" class="btn btn-primary">
-                                    上传
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <form role="form" class="form-horizontal" action="{{ route('upload.file') }}"
-                          enctype="multipart/form-data" method="post">
-                        {{ csrf_field() }}
-                        <input type="hidden" name="type" value="css">
-
-                        <div class="form-group">
-                            <label class="col-xs-2 col-xs-offset-1 control-label">
-                                Css
-                            </label>
-                            <div class="col-xs-6">
-                                <input class="form-control" type="file" name="file">
-                            </div>
-                            <div class="col-xs-2">
-                                <button type="submit" class="btn btn-primary">
-                                    上传
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    <form role="form" class="form-horizontal" action="{{ route('upload.file') }}"
-                          enctype="multipart/form-data" method="post">
-                        {{ csrf_field() }}
-                        <input type="hidden" name="type" value="font">
-
-                        <div class="form-group">
-                            <label class="col-xs-2 col-xs-offset-1 control-label">
-                                Font
-                            </label>
-                            <div class="col-xs-6">
-                                <input class="form-control" type="file" name="file">
-                            </div>
-                            <div class="col-xs-2">
-                                <button type="submit" class="btn btn-primary">
-                                    上传
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <form role="form" class="form-horizontal" action="{{ route('upload.file') }}"
-                          enctype="multipart/form-data" method="post">
-                        {{ csrf_field() }}
-                        <div class="form-group">
-                            <label class="col-xs-2 col-xs-offset-1 control-label">
-                                其他文件（如文章附件）
-                            </label>
-                            <div class="col-xs-6">
-                                <input class="form-control" type="file" name="file">
-                            </div>
-                            <div class="col-xs-2">
-                                <button type="submit" class="btn btn-primary">
-                                    上传
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-
-                    <div class="col-sm-10 col-sm-offset-1 mt-30">
-                        <table class="table table-hover table-bordered table-responsive">
-                            <tbody>
-                            @forelse($files as $file)
-                                <tr>
-                                    <td>{{ $file->type }}</td>
-                                    <td>{{ $file->name }}</td>
-                                    <td>
-                                        <button id="clipboard-btn" class="btn btn-default"
-                                                type="button"
-                                                data-clipboard-text="{{ getUrlByFileName($file->key) }}"
-                                                data-toggle="tooltip"
-                                                data-placement="left"
-                                                title="Copied">
-                                            <i class="fa fa-copy fa-fw"></i>
-                                        </button>
-                                        <a class="btn btn-info"
-                                           href="{{ getUrlByFileName($file->key) }}"
-                                                data-method="delete">
-                                            <i class="fa fa-cloud-download fa-fw"></i>
-                                        </a>
-                                        <button class="btn btn-danger"
-                                                data-method="delete"
-                                                data-modal-target="{{ $file->key }}"
-                                                data-url="{{ route('delete.file').'?key='.$file->key."&type=".$file->type }}">
-                                            <i class="fa fa-trash-o fa-fw"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                            @empty
-                            @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                </div>
-            </div>
+    <div class="card mb-3">
+        <div class="card-header">
+            <h6><i class="fa fa-file-archive-o fa-fw"></i>文件</h6>
         </div>
+        <div class="card-body">
+            <form class="form-inline justify-content-center" action="{{ route('upload.file') }}"
+                  datatype="image"
+                  enctype="multipart/form-data" method="post">
+                {{ csrf_field() }}
+                <div class="form-group">
+                    <label for="image" class="form-control-label mr-3">
+                        <i class="fa fa-file-archive-o fa-lg fa-fw"></i>
+                    </label>
+                    <input id="image" class="form-control-file" type="file" name="file">
+                </div>
+                <button type="submit" class="btn btn-outline-success ml-3">
+                    Upload
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <table class="table table-striped table-responsive">
+            <tbody>
+            @forelse($files as $file)
+                <tr>
+                    <td>{{ $file->type }}</td>
+                    <td>{{ $file->name }}</td>
+                    <td>
+                        <button id="clipboard-btn" class="btn btn-default"
+                                type="button"
+                                data-clipboard-text="{{ $file->url }}"
+                                data-toggle="tooltip"
+                                data-placement="left"
+                                title="Copied">
+                            <i class="fa fa-copy fa-fw"></i>
+                        </button>
+                        <a class="btn btn-info"
+                           href="{{ $file->url }}"
+                           data-method="delete">
+                            <i class="fa fa-cloud-download fa-fw"></i>
+                        </a>
+                        <button class="btn btn-danger swal-dialog-target"
+                                data-dialog-msg="确定删除{{ $file->key }}？"
+                                data-url="{{ route('delete.file').'?key='.$file->key."&type=".$file->type }}">
+                            <i class="fa fa-trash-o fa-fw"></i>
+                        </button>
+                    </td>
+                </tr>
+            @empty
+            @endforelse
+            </tbody>
+        </table>
     </div>
 @endsection
 @section('script')

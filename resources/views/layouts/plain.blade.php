@@ -18,11 +18,24 @@
     @include('widget.google_analytics')
 </head>
 <body>
+@if(isset($home_bg_images) && $home_bg_images)
+    <div id="home-cover-slideshow">
+        <?php
+        $images = preg_split('/[\n\r]+/', $home_bg_images);
+        shuffle($images);
+        ?>
+        @foreach ($images as $image)
+            <div class="home-cover-img" data-src="{{ $image }}"></div>
+        @endforeach
+    </div>
+@endif
 <div class="container">
     <div class="content">
         @yield('content')
     </div>
 </div>
 @yield('js')
+<script src="https://cdn.bootcss.com/jquery/3.2.1/jquery.slim.min.js"></script>
+<script src="{{ mix('js/home.js') }}"></script>
 </body>
 </html>

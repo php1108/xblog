@@ -1,17 +1,31 @@
 {
   "private": true,
   "scripts": {
-    "dev": "node node_modules/cross-env/bin/cross-env.js NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "watch": "node node_modules/cross-env/bin/cross-env.js NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "hot": "node node_modules/cross-env/bin/cross-env.js NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "production": "node node_modules/cross-env/bin/cross-env.js NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+    "dev": "npm run development",
+    "development": " NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch": " NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch-poll": "npm run watch -- --watch-poll",
+    "hot": " NODE_ENV=development node_modules/webpack-dev-server/bin/webpack-dev-server.js --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "prod": "npm run production",
+    "production": " NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
   },
   "devDependencies": {
-    "axios": "^0.15.2",
     "bootstrap-sass": "^3.3.7",
-    "jquery": "^3.1.0",
-    "laravel-mix": "^0.6.0",
-    "lodash": "^4.16.2",
-    "vue": "^2.0.1"
+
+    "jquery": "^3.1.1",
+    "laravel-mix": "0.*"
+  },
+  "dependencies": {
+    "autosize": "^4.0.0",
+    "bootstrap": "^4.0.0-beta",
+    "chart.js": "^2.7.0",
+    "font-awesome": "^4.7.0",
+    "highlight.js": "^9.12.0",
+    "jquery-bridget": "^2.0.1",
+    "marked": "^0.3.6",
+    "masonry-layout": "^4.2.0",
+    "node-sass": "^4.5.3",
+    "popper.js": "^1.12.5",
+    "sweetalert": "^1.1.3"
   }
 }
